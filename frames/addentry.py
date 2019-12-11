@@ -3,13 +3,12 @@ from tkinter import ttk, messagebox
 import re
 import argus
 
-
-
 class NewEntry(ttk.Frame):
     def __init__(self, parent, controller, show_ViewEntry):
         super().__init__(parent)
 
         self.controller = controller
+        self.show_ViewEntry = show_ViewEntry
 
         #grid stuff
         self.columnconfigure(0, weight=1)
@@ -24,10 +23,13 @@ class NewEntry(ttk.Frame):
         #new entry filename
         self.filename_entry_container()
         
-        #
+        
         #entry text  
         self.entry_text = tk.Text(self)
-        self.entry_text.grid(row=1, column=0, sticky="NESW", padx=(5,5), pady=(5,5))     
+        self.entry_text.grid(row=1, column=0, sticky="NESW", padx=(5,5), pady=(5,5))
+        
+        self.tags_text = "\n\n\n\n#TAGS\n> "
+        self.entry_text.insert("1.0", self.tags_text) 
 
         #scroll widget
         text_scroll = ttk.Scrollbar(self, orient="vertical", command=self.entry_text.yview)             #"text.yview" links the scroll widget to the y-axis of the text widget
@@ -51,8 +53,8 @@ class NewEntry(ttk.Frame):
 
     def filename_entry_container(self):
         self.filename_container = ttk.Frame(self)
-        #self.filename_container.columnconfigure(2, weight=1)
-        self.filename_container.grid(row=0, column=0, sticky="W", padx=(1, 5), pady=2)        
+        self.filename_container.columnconfigure(1, weight=1)
+        self.filename_container.grid(row=0, column=0, sticky="WE", padx=(1, 5), pady=2)        
         
         #filename label
         filename_label = tk.Label(
@@ -68,7 +70,10 @@ class NewEntry(ttk.Frame):
         self.filename_value = tk.StringVar()
         self.filename_value.set("")
         
-        self.filename_entry = ttk.Entry(self.filename_container, textvariable=self.filename_value)
+        self.filename_entry = ttk.Entry(
+            self.filename_container,
+            textvariable=self.filename_value)
+        
         self.filename_entry.grid(row=0, column=1, sticky="NESW", padx=(5,5), pady=(5,5))
         #self.filename_entry.focus()
         
@@ -84,8 +89,14 @@ class NewEntry(ttk.Frame):
             self.filename_value.set("")
             self.filename_entry.delete(0, 'end')
             self.entry_text.delete('1.0', tk.END)
+            self.entry_text.insert("1.0", self.tags_text) 
             
-            self.view_mode()
+            
+            #change view
+            self._open_search_frame(new_filename)
+            
+            #create index
+            self.index_create()
             
             messagebox.showinfo(f"New entry created", f"New entry successfully created under the filename: {new_filename}")
             
@@ -113,4 +124,19 @@ class NewEntry(ttk.Frame):
     
         s = str(s).strip().replace(' ', '_')
     
-        return re.sub(r'(?u)[^-\w.]', '', s)    
+        return re.sub(r'(?u)[^-\w.]', '', s)
+    
+    
+    def _open_search_frame(self, entry_file_name):
+        
+        #set working entry file
+        self.controller.view_entry.entry_filename.set(entry_file_name)
+        #fill the text widget
+        self.controller.view_entry.populate_from_file() 
+        #show edit entry view
+        self.show_ViewEntry()
+    
+    def index_create(self):
+        new_index = argus.WSearch()
+        new_index.index_create()
+        print("Index created.")     

@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import argus
 
 class ViewEntry(ttk.Frame):
     def __init__(self, parent, controller):
@@ -10,7 +11,7 @@ class ViewEntry(ttk.Frame):
         #grid stuff
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0)
-        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
      
         #variables
         self.entry_filename= tk.StringVar()
@@ -18,21 +19,31 @@ class ViewEntry(ttk.Frame):
         #self.entry_filename.set(self.controller.selected_entry_filename)
         self.data = tk.StringVar()
         
+        #filename label
+        self.filename_label = tk.Label(
+                self,
+                text=self.entry_filename.get(),
+                justify="left",
+                anchor="w"
+            )
+    
+        self.filename_label.grid(row=0, column=0)        
+        
         #entry text  
         self.entry_text = tk.Text(self)
-        self.entry_text.grid(row=0, column=0, sticky="NESW", padx=(5,5), pady=(5,5))
+        self.entry_text.grid(row=1, column=0, sticky="NESW", padx=(5,5), pady=(5,5))
         #get data from file and populate
         self.populate_from_file()        
         
         #scroll widget
         text_scroll = ttk.Scrollbar(self, orient="vertical", command=self.entry_text.yview)             #"text.yview" links the scroll widget to the y-axis of the text widget
-        text_scroll.grid(row=0, column=1, sticky="ns")
+        text_scroll.grid(row=1, column=1, sticky="ns")
         self.entry_text["yscrollcommand"] = text_scroll.set               
         
         #button_container
         self.button_container = ttk.Frame(self)
         self.button_container.columnconfigure(0, weight=1)
-        self.button_container.grid(columnspan=2, row=1, column=0, sticky="NESW")        
+        self.button_container.grid(columnspan=2, row=2, column=0, sticky="NESW")        
         
         #Edit button populate
         self.view_mode()
@@ -48,6 +59,7 @@ class ViewEntry(ttk.Frame):
             with open(f'{self.entry_filename.get()}', 'r') as file:
                 self.data.set(file.read())
                 print(self.entry_filename.get())
+                self.filename_label.config(text=self.entry_filename.get())
         except:
             self.data.set("No file selected")
         
@@ -60,7 +72,10 @@ class ViewEntry(ttk.Frame):
         with open(f'{self.entry_filename.get()}', 'w') as file:
             file.write(self.entry_text.get("1.0",tk.END))    
     
+        #update index
+        self.index_create()
         
+        #switch to viewing mode
         self.view_mode()
         
         
@@ -109,4 +124,9 @@ class ViewEntry(ttk.Frame):
     def clear(self):
         list = self.button_container.grid_slaves()
         for l in list:
-            l.destroy()    
+            l.destroy()
+    
+    def index_create(self):
+        new_index = argus.WSearch()
+        new_index.index_create()
+        print("Index created.")     

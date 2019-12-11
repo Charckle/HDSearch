@@ -44,6 +44,7 @@ class SearchResults(tk.Canvas):
             print(f"Found in the file:{entry}")
             self._create_search_container(entry)
         
+        print(len(results))
         if len(results) <= 1:
             result_label = tk.Label(
                 self,
